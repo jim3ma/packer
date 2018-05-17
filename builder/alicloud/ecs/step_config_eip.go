@@ -12,6 +12,7 @@ import (
 
 type setpConfigAlicloudEIP struct {
 	AssociatePublicIpAddress bool
+	UsePrivateIpAddress      bool
 	RegionId                 string
 	InternetChargeType       string
 	allocatedId              string
@@ -21,6 +22,20 @@ func (s *setpConfigAlicloudEIP) Run(_ context.Context, state multistep.StateBag)
 	client := state.Get("client").(*ecs.Client)
 	ui := state.Get("ui").(packer.Ui)
 	instance := state.Get("instance").(*ecs.InstanceAttributesType)
+
+	if s.UsePrivateIpAddress {
+		if len(instance.VpcAttributes.PrivateIpAddress.IpAddress) > 0 {
+			ipaddress := instance.VpcAttributes.PrivateIpAddress.IpAddress[0]
+			ui.Say(fmt.Sprintf("Use private ip %s", ipaddress))
+			state.Put("ipaddress", ipaddress)
+			return multistep.ActionContinue
+		} else {
+			err := fmt.Errorf("empty private ip address")
+			state.Put("error", err)
+			ui.Say(fmt.Sprintf("Error get private ip: %s", err))
+			return multistep.ActionHalt
+		}
+	}
 	ui.Say("Allocating eip")
 	ipaddress, allocateId, err := client.AllocateEipAddress(&ecs.AllocateEipAddressArgs{
 		RegionId: common.Region(s.RegionId), InternetChargeType: common.InternetChargeType(s.InternetChargeType),

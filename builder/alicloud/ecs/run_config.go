@@ -13,6 +13,7 @@ import (
 
 type RunConfig struct {
 	AssociatePublicIpAddress bool   `mapstructure:"associate_public_ip_address"`
+	UsePrivateIpAddress      bool   `mapstructure:"use_private_ip_address"`
 	ZoneId                   string `mapstructure:"zone_id"`
 	IOOptimized              bool   `mapstructure:"io_optimized"`
 	InstanceType             string `mapstructure:"instance_type"`

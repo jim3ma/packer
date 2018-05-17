@@ -10,6 +10,7 @@ import (
 )
 
 type stepConfigAlicloudPublicIP struct {
+	UsePrivateIpAddress bool
 	publicIPAddress string
 	RegionId        string
 }
@@ -19,6 +20,19 @@ func (s *stepConfigAlicloudPublicIP) Run(_ context.Context, state multistep.Stat
 	ui := state.Get("ui").(packer.Ui)
 	instance := state.Get("instance").(*ecs.InstanceAttributesType)
 
+	if s.UsePrivateIpAddress {
+		if len(instance.InnerIpAddress.IpAddress) > 0 {
+			ipaddress := instance.InnerIpAddress.IpAddress[0]
+			ui.Say(fmt.Sprintf("Use private ip %s", ipaddress))
+			state.Put("ipaddress", ipaddress)
+			return multistep.ActionContinue
+		} else {
+			err := fmt.Errorf("empty private ip address")
+			state.Put("error", err)
+			ui.Say(fmt.Sprintf("Error get private ip: %s", err))
+			return multistep.ActionHalt
+		}
+	}
 	ipaddress, err := client.AllocatePublicIpAddress(instance.InstanceId)
 	if err != nil {
 		state.Put("error", err)

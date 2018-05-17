@@ -138,12 +138,14 @@ func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packe
 	if b.chooseNetworkType() == VpcNet {
 		steps = append(steps, &setpConfigAlicloudEIP{
 			AssociatePublicIpAddress: b.config.AssociatePublicIpAddress,
+			UsePrivateIpAddress:      b.config.UsePrivateIpAddress,
 			RegionId:                 b.config.AlicloudRegion,
 			InternetChargeType:       b.config.InternetChargeType,
 		})
 	} else {
 		steps = append(steps, &stepConfigAlicloudPublicIP{
-			RegionId: b.config.AlicloudRegion,
+			RegionId:            b.config.AlicloudRegion,
+			UsePrivateIpAddress: b.config.UsePrivateIpAddress,
 		})
 	}
 	steps = append(steps,
